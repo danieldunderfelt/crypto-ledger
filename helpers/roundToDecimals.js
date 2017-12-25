@@ -1,0 +1,1 @@
+export default num => Math.round((num + 0.00001) * 1000) / 1000
