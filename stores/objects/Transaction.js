@@ -1,21 +1,23 @@
 import { extendObservable, observable, action } from 'mobx'
 import { isFiat, convertFiat }                  from '../../currencies'
 import { calculateFees, calculateExchangeRate } from '../../helpers/calculate'
+import get from 'lodash/get'
+import getFloat from '../../helpers/getFloat'
 
 const Transaction = (data, state) => {
   let prevDefaultFiat = state.preferences.defaultFiat
   
   const transaction = extendObservable(observable({
-    transactionTime: new Date(),
+    transactionTime: get(data, 'transactionTime', new Date()),
     addedTime: new Date(),
-    amountPaid: '',
-    currencyPaid: state.preferences.defaultFiat,
-    amountReceived: '',
-    currencyReceived: 'BTC',
-    exchangeRate: '',
-    exchangeDirection: 'paid/received', // Which direction the exchange rate is calculated in
-    exchange: '',
-    fees: '', // Manually added fees
+    amountPaid: getFloat(data, 'amountPaid', ''),
+    currencyPaid: get(data, 'currencyPaid', state.preferences.defaultFiat),
+    amountReceived: getFloat(data, 'amountReceived', ''),
+    currencyReceived: get(data, 'currencyReceived', 'BTC'),
+    exchangeRate: getFloat(data, 'exchangeRate', null),
+    exchangeDirection: get(data, 'exchangeDirection', 'paid/received'), // Which direction the exchange rate is calculated in
+    exchange: get(data, 'exchange', ''),
+    fees: getFloat(data, 'fees', null),
     _baseFiatPaid: null,
     get paidAmount() {
       const { defaultFiat } = state.preferences
@@ -73,7 +75,7 @@ const Transaction = (data, state) => {
       
       return calculateFees(amountPaid, amountReceived, txExchangeRate)
     }
-  }), data)
+  }))
   
   return transaction
 }

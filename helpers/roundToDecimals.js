@@ -1,1 +1,1 @@
-export default num => Math.round((num + 0.00001) * 100) / 100
+export default (value, decimals = 2) => Number(Math.round(value + 'e' + decimals) + 'e-' + decimals)

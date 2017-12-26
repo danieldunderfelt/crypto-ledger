@@ -1,19 +1,21 @@
 import { app }                           from 'mobx-app'
 import React, { Component }              from 'react'
 import { ScrollView, Picker } from 'react-native'
-import { observer, inject }              from 'mobx-react/native'
-import styled, { css }                            from 'styled-components/native'
-import { observable, action, toJS, computed }      from 'mobx'
-import Transaction                       from '../../stores/objects/Transaction'
-import currencies, { isFiat }                        from '../../currencies'
-import Button from '../Button'
-import { Ionicons } from '@expo/vector-icons'
-import styledIf from 'styled-if'
-import reject from 'lodash/reject'
+import { observer, inject }                   from 'mobx-react/native'
+import styled, { css }                        from 'styled-components/native'
+import { observable, action, toJS, computed } from 'mobx'
+import Transaction                            from '../../stores/objects/Transaction'
+import currencies, { isFiat }                 from '../../currencies'
+import Button                                 from '../Button'
+import { Ionicons }                           from '@expo/vector-icons'
+import styledIf                               from 'styled-if'
+import reject                                 from 'lodash/reject'
+import roundToDecimals                        from '../../helpers/roundToDecimals'
+import endsWith from '../../helpers/endsWith'
 
 const Wrapper = styled.View`
   background-color: white;
-  flex: 1;
+  /*flex: 1;*/
   border-radius: 10;
   elevation: 5;
   margin: 10px;
@@ -129,14 +131,18 @@ class AddTransaction extends Component {
   }
   
   render() {
-    const { exchangeRate, txExchangeRate, currencyPaid, currencyReceived, amountPaid, amountReceived } = this.newTransaction
+    const { transactionFees, fees, exchangeRate, txExchangeRate, currencyPaid, currencyReceived, amountPaid, amountReceived } = this.newTransaction
     
     const paidCurrencyExclude = isFiat(currencyReceived) ? Object.keys(currencies.fiat) : currencyReceived
     const receivedCurrencyExclude = isFiat(currencyPaid) ? Object.keys(currencies.fiat) : currencyPaid
     
-    const displayExchange = (amountReceived && amountPaid) ?
+    const displayExchange = exchangeRate === null && (amountReceived && amountPaid) ?
       txExchangeRate :
-      exchangeRate
+      exchangeRate ? exchangeRate : ''
+    
+    const displayFees = fees === null && transactionFees ?
+      transactionFees :
+      fees !== null ? fees : 0
     
     return (
       <Wrapper>
@@ -225,7 +231,7 @@ class AddTransaction extends Component {
                 <Input
                   keyboardType="numeric"
                   onChangeText={this.setNumericProp('fees')}
-                  value={this.newTransaction.transactionFees.toString()} />
+                  value={displayFees.toString()} />
               </FormItem>
               <Suffix>
                 { currencyPaid }

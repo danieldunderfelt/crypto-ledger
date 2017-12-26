@@ -5,7 +5,7 @@ export function calculateFees(paid, received, exchangeRate = ( paid / received))
   const difference = calcReceived - received
   
   const fee = difference * exchangeRate
-  return roundToDecimals(fee)
+  return roundToDecimals(fee, 2)
 }
 
 export function calculateExchangeRate(paid, received, fees = 0) {
@@ -15,5 +15,5 @@ export function calculateExchangeRate(paid, received, fees = 0) {
   const feesExcluded = numberPaid - fees
   
   const exchangeRate = feesExcluded / numberReceived
-  return roundToDecimals(exchangeRate)
+  return roundToDecimals(exchangeRate, 6)
 }
