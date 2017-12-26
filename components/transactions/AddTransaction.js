@@ -5,10 +5,11 @@ import { observer, inject }              from 'mobx-react/native'
 import styled, { css }                            from 'styled-components/native'
 import { observable, action, toJS, computed }      from 'mobx'
 import Transaction                       from '../../stores/objects/Transaction'
-import currencies                        from '../../currencies'
+import currencies, { isFiat }                        from '../../currencies'
 import Button from '../Button'
 import { Ionicons } from '@expo/vector-icons'
 import styledIf from 'styled-if'
+import reject from 'lodash/reject'
 
 const Wrapper = styled.View`
   background-color: white;
@@ -39,11 +40,11 @@ const CloseButton = styled(Button)`
 `
 
 const FormItem = styled.View`
-  flex: 2;
+  flex: 3;
   
   ${ styledIf('alignRight', css`
     margin-left: auto;
-    min-width: 10%;
+    min-width: 15%;
     flex: 1;
   `)}
 `
@@ -63,6 +64,10 @@ const InputGroup = styled.View`
 `
 
 const Label = styled.Text`
+  flex: 2;
+`
+
+const Suffix = styled.Text`
   flex: 1;
 `
 
@@ -77,7 +82,13 @@ const ConfirmButton = styled(Button).attrs({
 @inject(app('Transactions'))
 @observer
 class AddTransaction extends Component {
-  @observable newTransaction = Transaction({}, ( this.props.state ))
+  @observable newTransaction = Transaction({
+    amountPaid: 200,
+    amountReceived: 0.01426869,
+    currencyPaid: 'EUR',
+    currencyReceived: 'BTC',
+    fees: 7.670044499
+  }, ( this.props.state ))
   
   @computed get canConfirm() {
     const { amountPaid, amountReceived } = this.newTransaction
@@ -94,9 +105,9 @@ class AddTransaction extends Component {
   })
   
   setNumericProp = key => action(value => {
-    let setVal = parseFloat(value)
+    let setVal = value
     
-    if( !setVal || isNaN(setVal) ) {
+    if( setVal === '' || isNaN(parseFloat(setVal)) ) {
       setVal = ''
     }
     
@@ -114,12 +125,24 @@ class AddTransaction extends Component {
   }
   
   getCurrencyOptions = (exclude = []) => {
+    const excludeOption = Array.isArray(exclude) ? exclude : [ exclude ]
+    
     const fiat = Object.keys(currencies.fiat)
-    const crypto = Object.keys(currencies.fiat)
-    const combined = []
+    const crypto = Object.keys(currencies.crypto)
+    const combined = fiat.concat(crypto)
+    
+    return reject(combined, opt => excludeOption.indexOf(opt) > -1)
   }
   
   render() {
+    const { exchangeRate, txExchangeRate, currencyPaid, currencyReceived, amountPaid, amountReceived } = this.newTransaction
+    
+    const paidCurrencyExclude = isFiat(currencyReceived) ? Object.keys(currencies.fiat) : currencyReceived
+    const receivedCurrencyExclude = isFiat(currencyPaid) ? Object.keys(currencies.fiat) : currencyPaid
+    
+    const displayExchange = (amountReceived && amountPaid) ?
+      txExchangeRate :
+      exchangeRate
     
     return (
       <Wrapper>
@@ -146,15 +169,15 @@ class AddTransaction extends Component {
                   placeholder="Amount paid"
                   keyboardType="numeric"
                   onChangeText={this.setNumericProp('amountPaid')}
-                  value={this.newTransaction.amountPaid.toString()} />
+                  value={amountPaid.toString()} />
               </FormItem>
               <FormItem alignRight>
                 <Picker
                   mode="dropdown"
                   placeholder="Select currency"
                   onValueChange={this.setProp('currencyPaid')}
-                  selectedValue={this.newTransaction.currencyPaid}>
-                  {Object.keys(currencies.fiat).concat(Object.keys(currencies.crypto)).map(c => (
+                  selectedValue={currencyPaid}>
+                  { this.getCurrencyOptions(paidCurrencyExclude).map(c => (
                     <Picker.Item
                       key={`currency_opt_${ c }`}
                       label={c}
@@ -172,15 +195,15 @@ class AddTransaction extends Component {
                   placeholder="Amount received"
                   keyboardType="numeric"
                   onChangeText={this.setNumericProp('amountReceived')}
-                  value={this.newTransaction.amountReceived.toString()} />
+                  value={amountReceived.toString()} />
               </FormItem>
               <FormItem alignRight>
                 <Picker
                   mode="dropdown"
                   placeholder="Select currency"
                   onValueChange={this.setProp('currencyReceived')}
-                  selectedValue={this.newTransaction.currencyReceived}>
-                  {Object.keys(currencies.fiat).concat(Object.keys(currencies.crypto)).map(c => (
+                  selectedValue={currencyReceived}>
+                  {this.getCurrencyOptions(receivedCurrencyExclude).map(c => (
                     <Picker.Item
                       key={`currency_opt_${ c }`}
                       label={c}
@@ -188,6 +211,31 @@ class AddTransaction extends Component {
                   ))}
                 </Picker>
               </FormItem>
+            </InputGroup>
+            <InputGroup>
+              <Label>
+                {currencyPaid} / {currencyReceived}  rate
+              </Label>
+              <FormItem>
+                <Input
+                  keyboardType="numeric"
+                  onChangeText={ this.setNumericProp('exchangeRate') }
+                  value={displayExchange.toString()} />
+              </FormItem>
+            </InputGroup>
+            <InputGroup>
+              <Label>
+                Transaction fees
+              </Label>
+              <FormItem>
+                <Input
+                  keyboardType="numeric"
+                  onChangeText={this.setNumericProp('fees')}
+                  value={this.newTransaction.transactionFees.toString()} />
+              </FormItem>
+              <Suffix>
+                { currencyPaid }
+              </Suffix>
             </InputGroup>
           </Form>
           <ConfirmButton

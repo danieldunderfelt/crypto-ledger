@@ -1,5 +1,6 @@
 import { extendObservable, observable, action } from 'mobx'
-import { isFiat, convertFiat }          from '../../currencies'
+import { isFiat, convertFiat }                  from '../../currencies'
+import { calculateFees, calculateExchangeRate } from '../../helpers/calculate'
 
 const Transaction = (data, state) => {
   let prevDefaultFiat = state.preferences.defaultFiat
@@ -11,10 +12,10 @@ const Transaction = (data, state) => {
     currencyPaid: state.preferences.defaultFiat,
     amountReceived: '',
     currencyReceived: 'BTC',
-    exchangeRate: 1,
-    exchangeDirection: 'received/paid', // Which direction the exchange rate is calculated in
+    exchangeRate: '',
+    exchangeDirection: 'paid/received', // Which direction the exchange rate is calculated in
     exchange: '',
-    fees: false, // Manually added fees
+    fees: '', // Manually added fees
     _baseFiatPaid: null,
     get paidAmount() {
       const { defaultFiat } = state.preferences
@@ -57,9 +58,20 @@ const Transaction = (data, state) => {
       return 0
     },
     
-    // Difference between paid and received amount is the tx fee
+    get txExchangeRate() {
+      const { fees, exchangeRate, amountPaid, amountReceived } = transaction
+      if(exchangeRate) return exchangeRate
+      
+      return calculateExchangeRate(amountPaid, amountReceived, fees)
+    },
+    
+    // Difference between paid and received amount is the tx fee,
+    // if the fee is not manually set.
     get transactionFees() {
-      return 0
+      const { fees, txExchangeRate, amountPaid, amountReceived } = transaction
+      if(fees) return fees
+      
+      return calculateFees(amountPaid, amountReceived, txExchangeRate)
     }
   }), data)
   
