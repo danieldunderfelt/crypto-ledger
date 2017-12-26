@@ -5,13 +5,13 @@ const Transaction = data => {
   return extendObservable(observable({
     transactionTime: new Date(),
     addedTime: new Date(),
-    amountPaid: 0,
+    amountPaid: '',
     currencyPaid: 'USD',
-    amountReceived: 0,
+    amountReceived: '',
     currencyReceived: 'BTC',
     exchangeRate: 1,
     exchangeDirection: 'received/paid', // Which direction the exchange rate is calculated in
-    exchange: 'Coinbase',
+    exchange: '',
     fees: false, // Manually added fees
 
     // How much one currencyPaid was worth in fiat at tx time

@@ -1,12 +1,16 @@
-import React                          from 'react'
-import { Platform }                   from 'react-native'
+import React, { Component }           from 'react'
+import { Platform, View, Modal }      from 'react-native'
+import { observable, action }         from 'mobx'
+import { observer }                   from 'mobx-react/native'
 import { TabNavigator, TabBarBottom } from 'react-navigation'
 import { Ionicons }                   from '@expo/vector-icons'
+import { Icon, Fab }                  from 'native-base'
+import AddTransaction                 from '../components/transactions/AddTransaction'
 import Colors                         from '../constants/Colors'
 import TransactionsScreen             from '../screens/Transactions'
 import CoinsScreen                    from '../screens/Coins'
 
-export default TabNavigator({
+const TransactionTabsNav = TabNavigator({
     Coins: {
       screen: CoinsScreen
     },
@@ -46,3 +50,38 @@ export default TabNavigator({
     swipeEnabled: true
   }
 )
+
+@observer
+class TransactionTabsNavigator extends Component {
+  
+  @observable addTxOpen = false
+  
+  @action toggleOpen = (setTo = !this.addTxOpen) => {
+    this.addTxOpen = setTo
+  }
+  
+  render() {
+    
+    return (
+      <View style={{ flex: 1 }}>
+        <TransactionTabsNav />
+        <Modal
+          transparent={ true }
+          animationType="slide"
+          onRequestClose={ () => this.toggleOpen(false) }
+          visible={ this.addTxOpen }>
+          <AddTransaction onClose={ () => this.toggleOpen(false) }/>
+        </Modal>
+        <Fab
+          direction="up"
+          style={{ bottom: 50, backgroundColor: '#5067FF' }}
+          onPress={ this.toggleOpen }
+          position="bottomRight">
+          <Icon name="add" />
+        </Fab>
+      </View>
+    )
+  }
+}
+
+export default TransactionTabsNavigator

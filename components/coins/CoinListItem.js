@@ -25,8 +25,6 @@ class CoinListItem extends Component {
   render() {
     const { coin } = this.props
 
-    console.log(coin.name)
-    
     return (
       <ListItem>
         <CoinName>

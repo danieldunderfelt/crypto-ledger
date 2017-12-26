@@ -3097,6 +3097,10 @@ react-native-maps@0.17.1:
   version "0.17.1"
   resolved "https://registry.yarnpkg.com/react-native-maps/-/react-native-maps-0.17.1.tgz#ab2236341fd984dac8864202ae55331bc262f60c"
 
+react-native-multiple-select@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-multiple-select/-/react-native-multiple-select-0.3.0.tgz#0a1043684e3b88fb2eb0b7460d4b5d3ecc961ddb"
+
 react-native-safe-module@^1.1.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/react-native-safe-module/-/react-native-safe-module-1.2.0.tgz#a23824ca24edc2901913694a76646475113d570d"
@@ -3724,6 +3728,10 @@ styled-components@^2.4.0:
     prop-types "^15.5.4"
     stylis "^3.4.0"
     supports-color "^3.2.3"
+
+styled-if@^1.0.12:
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/styled-if/-/styled-if-1.0.12.tgz#db750dfb606239825721a350a63284f7a0bbf78b"
 
 stylis@^3.4.0:
   version "3.4.5"
