@@ -77,8 +77,7 @@ const ConfirmButton = styled(Button).attrs({
 @inject(app('Transactions'))
 @observer
 class AddTransaction extends Component {
-  
-  @observable newTransaction = Transaction({})
+  @observable newTransaction = Transaction({}, ( this.props.state ))
   
   @computed get canConfirm() {
     const { amountPaid, amountReceived } = this.newTransaction

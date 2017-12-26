@@ -1,38 +1,74 @@
 import React, { Component } from 'react'
-import { observer } from 'mobx-react/native'
-import styled from 'styled-components/native'
+import { observer, inject } from 'mobx-react/native'
+import styled               from 'styled-components/native'
+import { app }              from 'mobx-app'
 
-const CoinName = styled.Text`
-  
+const DataItem = styled.View`
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `
 
-const CoinValue = styled.Text`
+const DataLabel = styled.Text`
+   font-size: 10px;
+   font-weight: 700;
+   color: lightgrey;
+`
 
+const DataValue = styled.Text`
+  font-size: 16px;
 `
 
 const ListItem = styled.View`
-  justify-content: space-around;
+  justify-content: center;
   flex-direction: row;
-  padding-horizontal: 20;
-  padding-vertical: 10;
+  padding: 10px 0;
   border-bottom-width: 1;
   border-bottom-color: lightblue;
 `
 
+@inject(app('state'))
 @observer
 class CoinListItem extends Component {
 
   render() {
-    const { coin } = this.props
+    const { coin, state: { preferences } } = this.props
 
     return (
       <ListItem>
-        <CoinName>
-          { coin.name }
-        </CoinName>
-        <CoinValue>
-          { coin.value }
-        </CoinValue>
+        <DataItem>
+          <DataLabel>
+            NAME
+          </DataLabel>
+          <DataValue>
+            {coin.name}
+          </DataValue>
+        </DataItem>
+        <DataItem>
+          <DataLabel>
+            SYMBOL
+          </DataLabel>
+          <DataValue>
+            {coin.ticker}
+          </DataValue>
+        </DataItem>
+        <DataItem>
+          <DataLabel>
+            YOUR HOLDINGS
+          </DataLabel>
+          <DataValue>
+            {coin.positionAmount}
+          </DataValue>
+        </DataItem>
+        <DataItem>
+          <DataLabel>
+            INVESTMENT
+          </DataLabel>
+          <DataValue>
+            {coin.totalInvestment} {preferences.defaultFiat}
+          </DataValue>
+        </DataItem>
       </ListItem>
     )
   }

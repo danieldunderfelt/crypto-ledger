@@ -12,10 +12,13 @@ import RootNavigation from './navigation/RootNavigation'
 let prevState = {
   transactions: [{
     amountPaid: 100,
-    currencyPaid: 'USD',
+    currencyPaid: 'EUR',
     amountReceived: 400,
     currencyReceived: 'BTC'
-  }]
+  }],
+  preferences: {
+    defaultFiat: 'EUR'
+  }
 }
 
 @observer
