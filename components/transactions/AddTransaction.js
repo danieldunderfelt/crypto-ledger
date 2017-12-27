@@ -83,6 +83,8 @@ const ConfirmButton = styled(Button).attrs({
 })`
   padding: 15px;
   margin-top: auto;
+  border-bottom-left-radius: 10;
+  border-bottom-right-radius: 10;
 `
 
 @inject(app('Transactions'))
