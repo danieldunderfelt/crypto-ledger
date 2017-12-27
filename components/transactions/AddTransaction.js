@@ -10,6 +10,8 @@ import Button                                 from '../Button'
 import { Ionicons }                           from '@expo/vector-icons'
 import reject                                 from 'lodash/reject'
 import is                                     from 'styled-is'
+import DatePicker                             from 'react-native-datepicker'
+import parse from 'date-fns/parse'
 
 const Wrapper = styled.View`
   background-color: white;
@@ -110,6 +112,10 @@ class AddTransaction extends Component {
     this.newTransaction[ key ] = value
   })
   
+  setDateProp = key => action(date => {
+    this.newTransaction[ key ] = parse(date)
+  })
+  
   setNumericProp = key => action(value => {
     let setVal = value
     
@@ -204,7 +210,6 @@ class AddTransaction extends Component {
               </Label>
               <FormItem>
                 <Input
-                  onFocus={ () => console.log('I was pressed!') }
                   selectTextOnFocus
                   placeholder="Amount received"
                   keyboardType="numeric"
@@ -240,7 +245,7 @@ class AddTransaction extends Component {
               <RefreshButton onPress={ this.calculateExchangeRate }>
                 <Ionicons
                   size={ 25 }
-                  name="md-calculator" />
+                  name="ios-refresh" />
               </RefreshButton>
             </InputGroup>
             <InputGroup>
@@ -260,8 +265,25 @@ class AddTransaction extends Component {
               <RefreshButton onPress={ this.calculateFees }>
                 <Ionicons
                   size={ 25 }
-                  name="md-calculator" />
+                  name="ios-refresh" />
               </RefreshButton>
+            </InputGroup>
+            <InputGroup>
+              <Label>
+                Transaction time
+              </Label>
+              <FormItem>
+                <DatePicker
+                  confirmBtnText="Confirm"
+                  cancelBtnText="Cancel"
+                  mode="datetime"
+                  duration={ 200 }
+                  showIcon={ false }
+                  is24Hour={ true }
+                  onDateChange={ this.setDateProp('transactionTime') }
+                  placeholder="Set txion time"
+                  date={ this.newTransaction.transactionTime }/>
+              </FormItem>
             </InputGroup>
           </Form>
           <ConfirmButton

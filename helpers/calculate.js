@@ -9,11 +9,12 @@ export function calculateFees(paid, received, exchangeRate = ( paid / received))
 }
 
 export function calculateExchangeRate(paid, received, fees = 0) {
-  const numberPaid = paid ? paid : 1
-  const numberReceived = received ? received : 1
+  const numberPaid = paid && !isNaN(parseFloat(paid)) ? paid : 1
+  const numberReceived = received && !isNaN(parseFloat(received)) ? received : 1
+  const numberFees = fees && !isNaN(parseFloat(fees)) ? fees : 0
   
-  const feesExcluded = numberPaid - fees
+  const feesExcluded = numberPaid - numberFees
   
-  const exchangeRate = feesExcluded / numberReceived
+  const exchangeRate = numberReceived > 0 ? feesExcluded / numberReceived : 0
   return roundToDecimals(exchangeRate, 6)
 }
