@@ -3748,9 +3748,9 @@ styled-components@^2.4.0:
     stylis "^3.4.0"
     supports-color "^3.2.3"
 
-styled-if@^1.0.12:
-  version "1.0.12"
-  resolved "https://registry.yarnpkg.com/styled-if/-/styled-if-1.0.12.tgz#db750dfb606239825721a350a63284f7a0bbf78b"
+styled-is@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/styled-is/-/styled-is-1.1.0.tgz#0cf8d32098fe6559eb0ec889790cc6c84f1f497f"
 
 stylis@^3.4.0:
   version "3.4.5"

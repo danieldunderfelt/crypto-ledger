@@ -1,8 +1,8 @@
 import { app } from 'mobx-app'
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react/native'
-import styled from 'styled-components/native'
-import { Fab, Button, Icon } from 'native-base'
+import { Fab } from 'native-base'
+import { Ionicons } from '@expo/vector-icons'
 import { observable, action } from 'mobx'
 import faker from 'faker'
 
@@ -35,7 +35,7 @@ class TransactionActions extends Component {
         }}
         onPress={ () => Transactions.addItem(testTransaction()) }
         position="bottomRight">
-        <Icon name="add" />
+        <Ionicons name="add" />
       </Fab>
     )
   }

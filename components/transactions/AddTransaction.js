@@ -1,6 +1,6 @@
-import { app }                           from 'mobx-app'
-import React, { Component }              from 'react'
-import { ScrollView, Picker } from 'react-native'
+import { app }                                from 'mobx-app'
+import React, { Component }                   from 'react'
+import { ScrollView, Picker }                 from 'react-native'
 import { observer, inject }                   from 'mobx-react/native'
 import styled, { css }                        from 'styled-components/native'
 import { observable, action, toJS, computed } from 'mobx'
@@ -8,10 +8,8 @@ import Transaction                            from '../../stores/objects/Transac
 import currencies, { isFiat }                 from '../../currencies'
 import Button                                 from '../Button'
 import { Ionicons }                           from '@expo/vector-icons'
-import styledIf                               from 'styled-if'
 import reject                                 from 'lodash/reject'
-import roundToDecimals                        from '../../helpers/roundToDecimals'
-import endsWith from '../../helpers/endsWith'
+import is                                     from 'styled-is'
 
 const Wrapper = styled.View`
   background-color: white;
@@ -41,16 +39,6 @@ const CloseButton = styled(Button)`
   margin-left: auto;
 `
 
-const FormItem = styled.View`
-  flex: 3;
-  
-  ${ styledIf('alignRight', css`
-    margin-left: auto;
-    min-width: 15%;
-    flex: 1;
-  `)}
-`
-
 const ButtonLabel = styled.Text`
   color: white;
 `
@@ -65,12 +53,26 @@ const InputGroup = styled.View`
   margin-bottom: 20px;
 `
 
+const FormItem = styled.View`
+  flex: 3;
+  
+  ${ is('alignRight')`
+    margin-left: auto;
+    min-width: 30%;
+    flex: 0;
+  `}
+`
+
 const Label = styled.Text`
   flex: 2;
 `
 
 const Suffix = styled.Text`
   flex: 1;
+`
+
+const RefreshButton = styled(Button)`
+  padding: 5px 10px;
 `
 
 const ConfirmButton = styled(Button).attrs({
@@ -84,7 +86,7 @@ const ConfirmButton = styled(Button).attrs({
 @inject(app('Transactions'))
 @observer
 class AddTransaction extends Component {
-  @observable newTransaction = Transaction({}, ( this.props.state ))
+  @observable newTransaction = Transaction({}, (this.props.state))
   
   @computed get canConfirm() {
     const { amountPaid, amountReceived } = this.newTransaction
@@ -94,6 +96,14 @@ class AddTransaction extends Component {
     }
     
     return false
+  }
+  
+  @action calculateFees = () => {
+    this.newTransaction.fees = null
+  }
+  
+  @action calculateExchangeRate = () => {
+    this.newTransaction.exchangeRate = null
   }
   
   setProp = key => action(value => {
@@ -113,7 +123,7 @@ class AddTransaction extends Component {
   onConfirm = () => {
     const { Transactions, onClose } = this.props
     
-    if(this.canConfirm) {
+    if( this.canConfirm ) {
       Transactions.addItem(toJS(this.newTransaction))
     }
     
@@ -151,7 +161,7 @@ class AddTransaction extends Component {
             Add a transaction
           </Heading>
           <CloseButton
-            onPress={this.props.onClose}>
+            onPress={ this.props.onClose }>
             <Ionicons
               size={ 32 }
               name="md-close"
@@ -166,23 +176,25 @@ class AddTransaction extends Component {
               </Label>
               <FormItem>
                 <Input
+                  autoFocus
+                  selectTextOnFocus
                   placeholder="Amount paid"
                   keyboardType="numeric"
-                  onChangeText={this.setNumericProp('amountPaid')}
-                  value={amountPaid.toString()} />
+                  onChangeText={ this.setNumericProp('amountPaid') }
+                  value={ amountPaid.toString() } />
               </FormItem>
               <FormItem alignRight>
                 <Picker
                   mode="dropdown"
                   placeholder="Select currency"
-                  onValueChange={this.setProp('currencyPaid')}
-                  selectedValue={currencyPaid}>
+                  onValueChange={ this.setProp('currencyPaid') }
+                  selectedValue={ currencyPaid }>
                   { this.getCurrencyOptions(paidCurrencyExclude).map(c => (
                     <Picker.Item
-                      key={`currency_opt_${ c }`}
-                      label={c}
-                      value={c} />
-                  ))}
+                      key={ `currency_opt_${ c }` }
+                      label={ c }
+                      value={ c } />
+                  )) }
                 </Picker>
               </FormItem>
             </InputGroup>
@@ -192,36 +204,44 @@ class AddTransaction extends Component {
               </Label>
               <FormItem>
                 <Input
+                  onFocus={ () => console.log('I was pressed!') }
+                  selectTextOnFocus
                   placeholder="Amount received"
                   keyboardType="numeric"
-                  onChangeText={this.setNumericProp('amountReceived')}
-                  value={amountReceived.toString()} />
+                  onChangeText={ this.setNumericProp('amountReceived') }
+                  value={ amountReceived.toString() } />
               </FormItem>
               <FormItem alignRight>
                 <Picker
                   mode="dropdown"
                   placeholder="Select currency"
-                  onValueChange={this.setProp('currencyReceived')}
-                  selectedValue={currencyReceived}>
-                  {this.getCurrencyOptions(receivedCurrencyExclude).map(c => (
+                  onValueChange={ this.setProp('currencyReceived') }
+                  selectedValue={ currencyReceived }>
+                  { this.getCurrencyOptions(receivedCurrencyExclude).map(c => (
                     <Picker.Item
-                      key={`currency_opt_${ c }`}
-                      label={c}
-                      value={c} />
-                  ))}
+                      key={ `currency_opt_${ c }` }
+                      label={ c }
+                      value={ c } />
+                  )) }
                 </Picker>
               </FormItem>
             </InputGroup>
             <InputGroup>
               <Label>
-                {currencyPaid} / {currencyReceived}  rate
+                { currencyPaid } / { currencyReceived } rate
               </Label>
               <FormItem>
                 <Input
+                  selectTextOnFocus
                   keyboardType="numeric"
                   onChangeText={ this.setNumericProp('exchangeRate') }
-                  value={displayExchange.toString()} />
+                  value={ displayExchange.toString() } />
               </FormItem>
+              <RefreshButton onPress={ this.calculateExchangeRate }>
+                <Ionicons
+                  size={ 25 }
+                  name="md-calculator" />
+              </RefreshButton>
             </InputGroup>
             <InputGroup>
               <Label>
@@ -229,18 +249,24 @@ class AddTransaction extends Component {
               </Label>
               <FormItem>
                 <Input
+                  selectTextOnFocus
                   keyboardType="numeric"
-                  onChangeText={this.setNumericProp('fees')}
-                  value={displayFees.toString()} />
+                  onChangeText={ this.setNumericProp('fees') }
+                  value={ displayFees.toString() } />
               </FormItem>
               <Suffix>
                 { currencyPaid }
               </Suffix>
+              <RefreshButton onPress={ this.calculateFees }>
+                <Ionicons
+                  size={ 25 }
+                  name="md-calculator" />
+              </RefreshButton>
             </InputGroup>
           </Form>
           <ConfirmButton
             disabled={ !this.canConfirm }
-            onPress={this.onConfirm}>
+            onPress={ this.onConfirm }>
             <ButtonLabel>
               Add transaction
             </ButtonLabel>
