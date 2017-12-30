@@ -11,7 +11,7 @@ import TransactionsScreen             from '../screens/Transactions'
 import CoinsScreen                    from '../screens/Coins'
 
 const TransactionTabsNav = TabNavigator({
-    Coins: {
+    Currencies: {
       screen: CoinsScreen
     },
     Transactions: {
@@ -30,7 +30,7 @@ const TransactionTabsNav = TabNavigator({
                 ? `ios-list${focused ? '' : '-outline'}`
                 : 'md-list'
             break
-          case 'Coins':
+          case 'Currencies':
             iconName = Platform.OS === 'ios' ? `ios-cash${focused ? '' : '-outline'}` : 'md-cash'
             break
         }

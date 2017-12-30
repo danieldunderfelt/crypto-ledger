@@ -10,7 +10,7 @@ const TxList = styled(FlatList)`
   flex: 1;
 `
 
-@inject(app('Coins'))
+@inject(app('Currencies'))
 @observer
 class TransactionList extends Component {
 

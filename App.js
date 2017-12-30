@@ -10,15 +10,21 @@ import { observable, action } from 'mobx'
 import RootNavigation from './navigation/RootNavigation'
 
 let prevState = {
-  transactions: [{
-    amountPaid: 100,
-    currencyPaid: 'EUR',
-    amountReceived: 400,
-    currencyReceived: 'BTC'
-  }],
+  transactions: [],
   preferences: {
     defaultFiat: 'EUR'
-  }
+  },
+  fiat: [{
+    name: 'Euro',
+    symbol: 'EUR'
+  }, {
+    name: 'US Dollar',
+    symbol: 'USD'
+  }],
+  crypto: [{
+    name: 'Bitcoin',
+    symbol: 'BTC'
+  }]
 }
 
 @observer

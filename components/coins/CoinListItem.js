@@ -50,7 +50,7 @@ class CoinListItem extends Component {
             SYMBOL
           </DataLabel>
           <DataValue>
-            {coin.ticker}
+            {coin.symbol}
           </DataValue>
         </DataItem>
         <DataItem>

@@ -1,20 +1,22 @@
 import { extendObservable, observable } from 'mobx'
-import { getCurrencyType }              from '../../currencies'
-import roundToDecimals from '../../helpers/roundToDecimals'
+import roundToDecimals                  from '../../helpers/roundToDecimals'
+import CurrencyActions                  from '../../actions/CurrencyActions'
 
-const Coin = (data, state) => {
+export default (data, state) => {
+  const currencyActions = CurrencyActions(state)
+  
   const coin = extendObservable(observable({
+    symbol: '',
     name: '',
-    ticker: '',
     get type() {
-      return getCurrencyType(coin.ticker)
+      return currencyActions.getCurrencyType(this.symbol)
     },
-    // Total amount of coins currently in users possession
+    // Total amount of currentHoldings currently in users possession
     get positionAmount() {
       const val = state.transactions.reduce((value, tx) => {
-        if( tx.currencyPaid === coin.ticker ) {
+        if( tx.currencyPaid === coin.symbol ) {
           return value - tx.amountPaid
-        } else if( tx.currencyReceived === coin.ticker ) {
+        } else if( tx.currencyReceived === coin.symbol ) {
           return value + tx.amountReceived
         }
         
@@ -26,7 +28,7 @@ const Coin = (data, state) => {
     // How much USD the user has invested into this coin
     get totalInvestment() {
       const val = state.transactions.reduce((value, tx) => {
-        if( tx.currencyReceived === coin.ticker ) return value + tx.paidAmount
+        if( tx.currencyReceived === coin.symbol ) return value + tx.paidAmount
         return value
       }, 0)
       
@@ -34,7 +36,7 @@ const Coin = (data, state) => {
     },
     get acquisitionFees() {
       const val = state.transactions.reduce((value, tx) => {
-        if( tx.currencyReceived === coin.ticker ) return value + tx.transactionFees
+        if( tx.currencyReceived === coin.symbol ) return value + tx.transactionFees
         return value
       }, 0)
       
@@ -53,5 +55,3 @@ const Coin = (data, state) => {
   
   return coin
 }
-
-export default Coin

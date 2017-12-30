@@ -1,5 +1,4 @@
 import React, { Component }                     from 'react'
-import { Container, Header, Body, Content, H1 } from 'native-base'
 import { observer }                             from 'mobx-react/native'
 import styled                                   from 'styled-components/native'
 import CoinsList                                from '../components/coins/CoinList'

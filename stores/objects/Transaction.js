@@ -1,11 +1,14 @@
 import { extendObservable, observable, action } from 'mobx'
-import { isFiat, convertFiat }                  from '../../currencies'
 import { calculateFees, calculateExchangeRate } from '../../helpers/calculate'
-import get from 'lodash/get'
-import getFloat from '../../helpers/getFloat'
+import { convertFiat }                          from '../../helpers/currencyHelpers'
+import get                                      from 'lodash/get'
+import getFloat                                 from '../../helpers/getFloat'
+import CurrencyActions                          from '../../actions/CurrencyActions'
 
-const Transaction = (data, state) => {
+export default (data, state) => {
   let prevDefaultFiat = state.preferences.defaultFiat
+  
+  const currencyActions = CurrencyActions(state)
   
   const transaction = extendObservable(observable({
     transactionTime: get(data, 'transactionTime', new Date()),
@@ -15,7 +18,8 @@ const Transaction = (data, state) => {
     amountReceived: getFloat(data, 'amountReceived', ''),
     currencyReceived: get(data, 'currencyReceived', 'BTC'),
     exchangeRate: getFloat(data, 'exchangeRate', null),
-    exchangeDirection: get(data, 'exchangeDirection', 'paid/received'), // Which direction the exchange rate is calculated in
+    exchangeDirection: get(data, 'exchangeDirection', 'paid/received'), // Which direction the exchange rate is
+                                                                        // calculated in
     exchange: get(data, 'exchange', ''),
     fees: getFloat(data, 'fees', null),
     _baseFiatPaid: null,
@@ -23,17 +27,17 @@ const Transaction = (data, state) => {
       const { defaultFiat } = state.preferences
       const { _baseFiatPaid, currencyPaid, amountPaid, transactionTime } = transaction
       
-      if(currencyPaid === defaultFiat) return amountPaid
+      if( currencyPaid === defaultFiat ) return amountPaid
       
       // React correctly to defaultFiat preference changes
       let baseFiatPaid = _baseFiatPaid
       
-      if(defaultFiat !== prevDefaultFiat) {
+      if( defaultFiat !== prevDefaultFiat ) {
         baseFiatPaid = null
         prevDefaultFiat = defaultFiat
       }
       
-      if( isFiat(currencyPaid) && baseFiatPaid === null ) {
+      if( currencyActions.isFiat(currencyPaid) && baseFiatPaid === null ) {
         convertFiat(amountPaid, currencyPaid, defaultFiat, transactionTime)
           .then(action(value => transaction._baseFiatPaid = value))
       }
@@ -62,7 +66,7 @@ const Transaction = (data, state) => {
     
     get txExchangeRate() {
       const { fees, exchangeRate, amountPaid, amountReceived } = transaction
-      if(exchangeRate) return exchangeRate
+      if( exchangeRate ) return exchangeRate
       
       return calculateExchangeRate(amountPaid, amountReceived, fees)
     },
@@ -71,7 +75,7 @@ const Transaction = (data, state) => {
     // if the fee is not manually set.
     get transactionFees() {
       const { fees, txExchangeRate, amountPaid, amountReceived } = transaction
-      if(fees) return fees
+      if( fees ) return fees
       
       return calculateFees(amountPaid, amountReceived, txExchangeRate)
     }
@@ -79,5 +83,3 @@ const Transaction = (data, state) => {
   
   return transaction
 }
-
-export default Transaction

@@ -5,17 +5,17 @@ import { observer, inject }                   from 'mobx-react/native'
 import styled, { css }                        from 'styled-components/native'
 import { observable, action, toJS, computed } from 'mobx'
 import Transaction                            from '../../stores/objects/Transaction'
-import currencies, { isFiat }                 from '../../currencies'
+import currencies, { isFiat }                 from '../../helpers/currencyHelpers'
 import Button                                 from '../Button'
 import { Ionicons }                           from '@expo/vector-icons'
 import reject                                 from 'lodash/reject'
 import is                                     from 'styled-is'
 import DatePicker                             from 'react-native-datepicker'
-import parse from 'date-fns/parse'
+import parse                                  from 'date-fns/parse'
+import currencyActions                        from '../../actions/CurrencyActions'
 
 const Wrapper = styled.View`
   background-color: white;
-  /*flex: 1;*/
   border-radius: 10;
   elevation: 5;
   margin: 10px;
@@ -87,9 +87,10 @@ const ConfirmButton = styled(Button).attrs({
   border-bottom-right-radius: 10;
 `
 
-@inject(app('Transactions'))
+@inject(app('Transactions', 'Currencies'))
 @observer
 class AddTransaction extends Component {
+  currencyActions = currencyActions((this.props.state))
   @observable newTransaction = Transaction({}, (this.props.state))
   
   @computed get canConfirm() {
@@ -100,6 +101,15 @@ class AddTransaction extends Component {
     }
     
     return false
+  }
+  
+  @computed get currencies() {
+    const { crypto, fiat } = this.props.state
+    
+    return crypto.concat(fiat).reduce((all, item) => {
+      all[ item.symbol ] = item
+      return all
+    }, {})
   }
   
   @action calculateFees = () => {
@@ -140,19 +150,18 @@ class AddTransaction extends Component {
   
   getCurrencyOptions = (exclude = []) => {
     const excludeOption = Array.isArray(exclude) ? exclude : [ exclude ]
+    const { currencies } = this
     
-    const fiat = Object.keys(currencies.fiat)
-    const crypto = Object.keys(currencies.crypto)
-    const combined = fiat.concat(crypto)
-    
-    return reject(combined, opt => excludeOption.indexOf(opt) > -1)
+    return reject(Object.keys(currencies), opt => excludeOption.indexOf(opt) > -1)
   }
   
   render() {
+    const { fiat } = this.props.state
     const { transactionFees, fees, exchangeRate, txExchangeRate, currencyPaid, currencyReceived, amountPaid, amountReceived } = this.newTransaction
+    const fiatSymbols = fiat.map(f => f.symbol)
     
-    const paidCurrencyExclude = isFiat(currencyReceived) ? Object.keys(currencies.fiat) : currencyReceived
-    const receivedCurrencyExclude = isFiat(currencyPaid) ? Object.keys(currencies.fiat) : currencyPaid
+    const paidCurrencyExclude = this.currencyActions.isFiat(currencyReceived) ? fiatSymbols : currencyReceived
+    const receivedCurrencyExclude = this.currencyActions.isFiat(currencyPaid) ? fiatSymbols : currencyPaid
     
     const displayExchange = exchangeRate === null && (amountReceived && amountPaid) ?
       txExchangeRate :

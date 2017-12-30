@@ -22,10 +22,10 @@ class CoinList extends Component {
 
   render() {
     const { state } = this.props
-
+    
     return (
       <CoinListing
-        data={ state.coins }
+        data={ state.currentHoldings }
         renderItem={ this.renderItem }
         keyExtractor={ this._keyExtractor }/>
     )
