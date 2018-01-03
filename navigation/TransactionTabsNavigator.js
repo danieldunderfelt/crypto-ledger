@@ -4,7 +4,7 @@ import { observable, action }         from 'mobx'
 import { observer }                   from 'mobx-react/native'
 import { TabNavigator, TabBarBottom } from 'react-navigation'
 import { Ionicons }                   from '@expo/vector-icons'
-import { Icon, Fab }                  from 'native-base'
+import { Fab }                        from 'native-base'
 import AddTransaction                 from '../components/transactions/AddTransaction'
 import Colors                         from '../constants/Colors'
 import TransactionsScreen             from '../screens/Transactions'
@@ -36,10 +36,10 @@ const TransactionTabsNav = TabNavigator({
         }
         return (
           <Ionicons
-            name={iconName}
-            size={28}
-            style={{ marginBottom: -3 }}
-            color={focused ? Colors.tabIconSelected : Colors.tabIconDefault}
+            name={ iconName }
+            size={ 28 }
+            style={ { marginBottom: -3 } }
+            color={ focused ? Colors.tabIconSelected : Colors.tabIconDefault }
           />
         )
       }
@@ -63,21 +63,21 @@ class TransactionTabsNavigator extends Component {
   render() {
     
     return (
-      <View style={{ flex: 1 }}>
+      <View style={ { flex: 1 } }>
         <TransactionTabsNav />
         <Modal
           transparent={ true }
           animationType="slide"
           onRequestClose={ () => this.toggleOpen(false) }
           visible={ this.addTxOpen }>
-          <AddTransaction onClose={ () => this.toggleOpen(false) }/>
+          <AddTransaction onClose={ () => this.toggleOpen(false) } />
         </Modal>
         <Fab
           direction="up"
-          style={{ bottom: 50, backgroundColor: '#5067FF' }}
+          style={ { bottom: 50, backgroundColor: '#5067FF' } }
           onPress={ this.toggleOpen }
           position="bottomRight">
-          <Icon name="add" />
+          <Ionicons name="ios-add" />
         </Fab>
       </View>
     )

@@ -11,8 +11,9 @@ export default (state, initialState) => {
   const transactionCollection = collection(state.transactions, data => Transaction(data, state))
   transactionCollection.addItems(initialState.transactions, false)
   
-  const storage = Storage('ledger_transactions')
-  observe(state, 'transactions', storage.observeListener, true)
+  
+  /*const storage = Storage('ledger_transactions')
+  observe(state, 'transactions', storage.observeListener, true)*/
   
   return {
     ...transactionCollection

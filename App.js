@@ -1,16 +1,18 @@
 import { AppLoading, Asset, Font } from 'expo'
-import { toJS } from 'mobx'
+import { toJS, observe } from 'mobx'
 import React from 'react'
-import { StyleSheet, View, Platform, StatusBar } from 'react-native'
+import { StyleSheet, View, Platform, StatusBar, Dimensions } from 'react-native'
 import { Provider, observer } from 'mobx-react/native'
 import stores from './stores'
 import { Ionicons } from '@expo/vector-icons'
 import { createStore } from 'mobx-app'
 import { observable, action } from 'mobx'
 import RootNavigation from './navigation/RootNavigation'
+import NetworkActions from './actions/NetworkActions'
+
+console.ignoredYellowBox = [ 'Warning: Can only update a mounted or mounting component' ];
 
 let prevState = {
-  transactions: [],
   preferences: {
     defaultFiat: 'EUR'
   },
@@ -21,10 +23,7 @@ let prevState = {
     name: 'US Dollar',
     symbol: 'USD'
   }],
-  crypto: [{
-    name: 'Bitcoin',
-    symbol: 'BTC'
-  }]
+  crypto: []
 }
 
 @observer
@@ -67,7 +66,9 @@ class App extends React.Component {
   }
 
   _loadResourcesAsync = async () => {
+    const network = NetworkActions(this.store.state)
     return Promise.all([
+      network.loadCryptocurrencies(),
       Font.loadAsync({
         ...Ionicons.font,
         'Roboto': require('native-base/Fonts/Roboto.ttf'),

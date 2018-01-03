@@ -1,13 +1,33 @@
-import { extendObservable, observable } from 'mobx'
-import roundToDecimals                  from '../../helpers/roundToDecimals'
-import CurrencyActions                  from '../../actions/CurrencyActions'
+import { extendObservable, observable, action, runInAction, reaction } from 'mobx'
+import roundToDecimals                                                 from '../../helpers/roundToDecimals'
+import CurrencyActions                                                 from '../../actions/CurrencyActions'
+import NetworkActions                                                  from '../../actions/NetworkActions'
+import isAfter                                                         from 'date-fns/is_after'
+import subSeconds                                                      from 'date-fns/sub_seconds'
+import get                                                             from 'lodash/get'
 
 export default (data, state) => {
   const currencyActions = CurrencyActions(state)
+  const network = NetworkActions(state)
   
   const coin = extendObservable(observable({
     symbol: '',
     name: '',
+    logo: '',
+    marketCapSort: 0,
+    _loading: false,
+    _cache: {
+      priceData: {
+        params: '',
+        value: null
+      }
+    },
+    _resetCache: action(() => Object.keys(coin._cache).forEach(cacheKey => {
+      extendObservable(coin._cache[ cacheKey ], {
+        params: '',
+        value: null
+      })
+    })),
     get type() {
       return currencyActions.getCurrencyType(this.symbol)
     },
@@ -42,15 +62,46 @@ export default (data, state) => {
       
       return roundToDecimals(val)
     },
-    get positionValue() {
-      return 0
+    get _priceData() {
+      const { symbol, _cache: { priceData: { params, value, updated = null } } } = coin
+      const { defaultFiat = 'USD' } = state
+      const updatedAt = !updated ? new Date() : updated
+      
+      // Update if cache is old or defaultFiat is changed
+      if( !value || isAfter(subSeconds(new Date(), 10), updatedAt) || params !== defaultFiat ) {
+        
+        network
+          .getPrice(symbol, defaultFiat)
+          .then(action(val => {
+            // If we got data, update the cache.
+            if( Object.keys(val).length > 0 ) {
+              // Extend the cache object with new data.
+              extendObservable(coin._cache.priceData, {
+                value: val,
+                params: defaultFiat,
+                updated: new Date()
+              })
+            }
+            
+            // Loading complete.
+            coin._loading = false
+          }))
+      }
+      
+      return value ? value : {}
     },
     get marketValue() {
-      return 0
+      const { price = '' } = coin._priceData
+      return price
     },
-    get positionChange() {
-      return 0
+    get positionValue() {
+      const { positionAmount, marketValue } = coin
+      return roundToDecimals(positionAmount * marketValue)
     },
+    get change24hr() {
+      const { change24hr = '' } = coin._priceData
+      return change24hr
+    }
   }), data)
   
   return coin

@@ -1,6 +1,4 @@
 import { observe, observable, extendObservable, action } from 'mobx'
-import { collection }                                    from 'mobx-app'
-import Coin                                              from './objects/Coin'
 import CurrencyActions                                   from '../actions/CurrencyActions'
 
 export default (state, initialState) => {
@@ -17,12 +15,9 @@ export default (state, initialState) => {
   })
   
   const currencyActions = CurrencyActions(state)
-  
-  const cryptoActions = collection(state.crypto, coinData => Coin(coinData, state))
-  cryptoActions.addItems(initialState.crypto)
+  currencyActions.cryptoCollection.addItems(initialState.crypto)
   
   return {
-    ...cryptoActions,
     ...currencyActions
   }
 }

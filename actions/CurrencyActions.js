@@ -1,4 +1,6 @@
-import { exists } from '../helpers/currencyHelpers'
+import { exists }     from '../helpers/currencyHelpers'
+import { collection } from 'mobx-app'
+import Coin           from '../stores/objects/Coin'
 
 export default state => {
   
@@ -50,7 +52,10 @@ export default state => {
     }, [])
   }
   
+  const cryptoActions = collection(state.crypto, coinData => Coin(coinData, state))
+  
   return {
+    cryptoCollection: cryptoActions,
     isFiat,
     isCrypto,
     getCurrencyType,
