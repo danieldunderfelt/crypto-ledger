@@ -18,7 +18,8 @@ class Coins extends Component {
   
   @computed get cryptoOptions() {
     const { state } = this.props
-    return state.crypto.map(c => ({ value: c.symbol, label: c.symbol, match: c.name }))
+    const crypto = state.sortedCrypto
+    return crypto.map(c => ({ value: c.symbol, label: c.symbol, match: c.name }))
   }
   
   @observable selectedCoin = (this.cryptoOptions.find(c => c.value === 'BTC'))

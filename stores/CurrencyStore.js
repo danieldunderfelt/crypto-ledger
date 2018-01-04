@@ -6,7 +6,9 @@ export default (state, initialState) => {
   extendObservable(state, {
     crypto: [],
     fiat: initialState.fiat,
-    
+    get sortedCrypto() {
+      return state.crypto.sort((a, b) => a.marketCapSort > b.marketCapSort ? 1 : -1)
+    },
     get currentHoldings() {
       const { transactions, crypto } = state
       const holdings = currencyActions.getCoinsFromTransactions(transactions)

@@ -15,7 +15,8 @@ const OptionList = styled.FlatList`
 class ListPicker extends Component {
   _keyExtractor = item => item.value
   scrollView = null
-  ignoreScroll = false
+  ignoreScroll = true
+  scrollDidEnd = false
   
   onScroll = e => {
     if(this.ignoreScroll) {
@@ -25,59 +26,72 @@ class ListPicker extends Component {
     
     const { options } = this.props
     const scrollOffset = Math.round(e.nativeEvent.contentOffset.y)
-    const optionsIndex = (scrollOffset / 20) + 1
-    const optionAtIndex = get(options, `[${ optionsIndex }]`, false)
+    
+    if( scrollOffset % 20 === 0) {
+      const optionsIndex = scrollOffset > 0 ? Math.round(scrollOffset / 20) + 1 : 0
+      const optionAtIndex = get(options, `[${ optionsIndex }]`, false)
   
-    if( optionAtIndex ) {
-      this.onChange(optionAtIndex)
+      if( optionAtIndex ) {
+        this.onChange(optionAtIndex)
+      }
     }
   }
   
-  onChange = debounce(opt => {
+  onChange = opt => {
+    this.ignoreScroll = true
     this.props.onChange(opt)
-  }, 100)
+  }
   
   getIndexOfOption = option => {
     const { options } = this.props
-    return options.findIndex(opt => opt.value === option.value)
+    const idx = options.findIndex(opt => opt.value === option.value)
+    
+    return idx
   }
   
-  getOffsetOfOption = option => {
-    const idx = this.getIndexOfOption(option)
+  scrollToOption = opt => {
+    const nextIndex = this.getIndexOfOption(opt)
     
-    if(idx > -1) {
-      return idx * 20
+    if(nextIndex > -1) {
+      this.ignoreScroll = true
+      this.scrollView.scrollToIndex({ index: nextIndex, viewPosition: 0.5 })
     }
-    
-    return 0
+  }
+  
+  componentDidMount() {
+    const { value } = this.props
+    this.scrollToOption(value)
   }
   
   componentWillReceiveProps({ value: nextValue }) {
     const { value } = this.props
     
     if(value !== nextValue) {
-      const nextOffset = this.getIndexOfOption(nextValue)
-      
-      this.ignoreScroll = true
-      this.scrollView.scrollToIndex({ index: nextOffset, viewPosition: 0.5  })
+      this.scrollToOption(nextValue)
     }
   }
   
-  _renderItem = ({ item }) => (
+  _renderItem = ({ item, index }) => (
     <ListPickerItem
       item={ item }
+      index={ index }
       selected={ this.props.value } />
   )
   
   render() {
     const { options } = this.props
     
+    let opts = options.slice()
+    opts.push({ value: '_empty_end', label: '' })
+    
     return (
       <Wrapper>
         <OptionList
+          contentInset={{ top: 20 }}
+          showsVerticalScrollIndicator={ false }
+          showsHorizontalScrollIndicator={ false }
           getItemLayout={ (data, idx) => ({ offset: 20 * idx, length: 20, index: idx })}
           innerRef={ ref => this.scrollView = ref }
-          decelerationRate={ 0 }
           onScroll={ this.onScroll }
           snapToAlignment="center"
           snapToInterval={ 20 }
