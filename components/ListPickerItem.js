@@ -6,6 +6,7 @@ import get from 'lodash/get'
 
 const OptionItem = styled.View`
   height: ${({ height = 20 }) => height }px;
+  background-color: transparent;
 `
 
 const OptionLabel = styled.Text`
@@ -20,13 +21,15 @@ const OptionLabel = styled.Text`
 class ListPickerItem extends Component {
   
   render() {
-    const { height, item, selected } = this.props
+    const { height, item, selected, selectedColor, defaultColor } = this.props
     const isSelected = get(selected, 'value', false) === get(item, 'value', true)
     
     return (
       <OptionItem
         height={ height }>
         <OptionLabel
+          selectedColor={ selectedColor }
+          defaultColor={ defaultColor }
           selected={ isSelected }>
           { item.label }
         </OptionLabel>

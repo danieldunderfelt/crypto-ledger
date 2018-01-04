@@ -1,22 +1,23 @@
 import React, { Component }                   from 'react'
-import { View, Text, StyleSheet }             from 'react-native'
 import { observer }                           from 'mobx-react/native'
 import styled                                 from 'styled-components/native'
-import get                                    from 'lodash/get'
 import debounce                                    from 'lodash/debounce'
 import ListPickerItem                         from './ListPickerItem'
+import { LinearGradient } from 'expo'
 
-const Wrapper = styled.View``
-const OptionList = styled.FlatList`
+const Wrapper = styled.View`
+  position: relative;
   height: 60px;
 `
+
+const OptionList = styled.FlatList``
 
 @observer
 class ListPicker extends Component {
   _keyExtractor = item => item.value
   scrollView = null
   ignoreScroll = true
-  scrollDidEnd = false
+  scrollEndTimeout = 0
   
   onScroll = e => {
     if(this.ignoreScroll) {
@@ -24,21 +25,29 @@ class ListPicker extends Component {
       return
     }
     
-    const { options } = this.props
-    const scrollOffset = Math.round(e.nativeEvent.contentOffset.y)
+    clearTimeout(this.scrollEndTimeout)
     
+    this.scrollEndTimeout = setTimeout(offset => {
+      this.onScrollEnd(offset)
+    }, 100, e.nativeEvent.contentOffset.y)
+  }
+  
+  onScrollEnd = offset => {
+    const { options } = this.props
+    let scrollOffset = Math.round(offset)
+  
     if( scrollOffset % 20 === 0) {
       const optionsIndex = scrollOffset > 0 ? Math.round(scrollOffset / 20) + 1 : 0
-      const optionAtIndex = get(options, `[${ optionsIndex }]`, false)
+      const optionAtIndex = options[ optionsIndex ]
   
-      if( optionAtIndex ) {
+      if( typeof optionAtIndex !== 'undefined' ) {
+        this.ignoreScroll = true
         this.onChange(optionAtIndex)
       }
     }
   }
   
   onChange = opt => {
-    this.ignoreScroll = true
     this.props.onChange(opt)
   }
   
@@ -73,6 +82,7 @@ class ListPicker extends Component {
   
   _renderItem = ({ item, index }) => (
     <ListPickerItem
+      selectedColor="#444"
       item={ item }
       index={ index }
       selected={ this.props.value } />
@@ -87,10 +97,9 @@ class ListPicker extends Component {
     return (
       <Wrapper>
         <OptionList
-          contentInset={{ top: 20 }}
           showsVerticalScrollIndicator={ false }
           showsHorizontalScrollIndicator={ false }
-          getItemLayout={ (data, idx) => ({ offset: 20 * idx, length: 20, index: idx })}
+          getItemLayout={ (data, idx) => ({ offset: 20 * idx, length: 20, index: idx }) }
           innerRef={ ref => this.scrollView = ref }
           onScroll={ this.onScroll }
           snapToAlignment="center"
