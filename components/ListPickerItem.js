@@ -21,12 +21,12 @@ const OptionLabel = styled.Text`
 class ListPickerItem extends Component {
   
   render() {
-    const { height, item, selected, selectedColor, defaultColor } = this.props
+    const { itemHeight, item, selected, selectedColor, defaultColor } = this.props
     const isSelected = get(selected, 'value', false) === get(item, 'value', true)
     
     return (
       <OptionItem
-        height={ height }>
+        height={ itemHeight }>
         <OptionLabel
           selectedColor={ selectedColor }
           defaultColor={ defaultColor }

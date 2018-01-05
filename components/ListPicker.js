@@ -3,7 +3,6 @@ import { observer }                           from 'mobx-react/native'
 import styled                                 from 'styled-components/native'
 import debounce                                    from 'lodash/debounce'
 import ListPickerItem                         from './ListPickerItem'
-import { LinearGradient } from 'expo'
 
 const Wrapper = styled.View`
   position: relative;
@@ -12,44 +11,76 @@ const Wrapper = styled.View`
 
 const OptionList = styled.FlatList``
 
+const ITEMHEIGHT = 20
+
 @observer
 class ListPicker extends Component {
   _keyExtractor = item => item.value
   scrollView = null
   ignoreScroll = true
   scrollEndTimeout = 0
+  ignoreTimeout = 0
+  prevOffset = 0
   
   onScroll = e => {
     if(this.ignoreScroll) {
-      this.ignoreScroll = false
+      // Ignore while scroll animation is happening.
+      // And don't spawn more than one timeout :)
+      if(!this.ignoreTimeout) {
+        this.ignoreTimeout = setTimeout(() => {
+          this.ignoreScroll = false
+          this.ignoreTimeout = 0
+        }, 500)
+      }
+      
       return
     }
-    
+  
+    const { y } = e.nativeEvent.contentOffset
     clearTimeout(this.scrollEndTimeout)
     
     this.scrollEndTimeout = setTimeout(offset => {
-      this.onScrollEnd(offset)
-    }, 100, e.nativeEvent.contentOffset.y)
+      let direction = 'down'
+  
+      if( offset < this.prevOffset ) {
+        direction = 'up'
+      }
+  
+      this.prevOffset = offset
+      
+      this.onScrollEnd(offset, direction)
+    }, 100, y)
   }
   
-  onScrollEnd = offset => {
+  getIndexFromOffset = offset => {
+    let scrollOffset = Math.round(offset + 0.5)
+  
+    let i = 0
+  
+    while( scrollOffset % ITEMHEIGHT !== 0 && i < ITEMHEIGHT ) {
+      scrollOffset++
+      i++
+    }
+  
+    const scrollIndex = scrollOffset / ITEMHEIGHT
+    return scrollIndex - 1
+  }
+  
+  onScrollEnd = (offset, direction = 'down') => {
     const { options } = this.props
-    let scrollOffset = Math.round(offset)
-  
-    if( scrollOffset % 20 === 0) {
-      const optionsIndex = scrollOffset > 0 ? Math.round(scrollOffset / 20) + 1 : 0
-      const optionAtIndex = options[ optionsIndex ]
-  
-      if( typeof optionAtIndex !== 'undefined' ) {
-        this.ignoreScroll = true
-        this.onChange(optionAtIndex)
-      }
+    
+    const optionsIndex = this.getIndexFromOffset(offset)
+    const optionAtIndex = options[ optionsIndex ]
+
+    if( typeof optionAtIndex !== 'undefined' ) {
+      this.ignoreScroll = true
+      this.onChange(optionAtIndex, optionsIndex)
     }
   }
   
-  onChange = opt => {
-    this.props.onChange(opt)
-  }
+  onChange = debounce((opt, index) => {
+    this.props.onChange(opt, index)
+  }, 10)
   
   getIndexOfOption = option => {
     const { options } = this.props
@@ -63,7 +94,8 @@ class ListPicker extends Component {
     
     if(nextIndex > -1) {
       this.ignoreScroll = true
-      this.scrollView.scrollToIndex({ index: nextIndex, viewPosition: 0.5 })
+      this.scrollView.scrollToOffset({ offset: nextIndex * ITEMHEIGHT })
+      this.scrollView.recordInteraction()
     }
   }
   
@@ -83,6 +115,7 @@ class ListPicker extends Component {
   _renderItem = ({ item, index }) => (
     <ListPickerItem
       selectedColor="#444"
+      itemHeight={ ITEMHEIGHT }
       item={ item }
       index={ index }
       selected={ this.props.value } />
@@ -92,21 +125,21 @@ class ListPicker extends Component {
     const { options } = this.props
     
     let opts = options.slice()
-    opts.push({ value: '_empty_end', label: '' })
+    opts.push({ value: '_empty_end', label: 'START' })
+    opts.unshift({ value: '_empty_start', label: 'END' })
     
     return (
       <Wrapper>
         <OptionList
           showsVerticalScrollIndicator={ false }
           showsHorizontalScrollIndicator={ false }
-          getItemLayout={ (data, idx) => ({ offset: 20 * idx, length: 20, index: idx }) }
+          getItemLayout={ (data, idx) => ({ offset: ITEMHEIGHT * idx, length: ITEMHEIGHT, index: idx }) }
           innerRef={ ref => this.scrollView = ref }
           onScroll={ this.onScroll }
-          snapToAlignment="center"
-          snapToInterval={ 20 }
+          decelerationRate="fast"
           keyExtractor={ this._keyExtractor }
           renderItem={ this._renderItem }
-          data={ options } />
+          data={ opts } />
       </Wrapper>
     )
   }
