@@ -10,7 +10,8 @@ const apiSchema = {
       'SortOrder': 'marketCapSort'
     },
     process: {
-      'ImageUrl': value => 'https://www.cryptocompare.com' + value
+      'ImageUrl': value => 'https://www.cryptocompare.com' + value,
+      'SortOrder': value => parseInt(value)
     }
   },
   cryptocompare_pricemultifull: {

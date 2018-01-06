@@ -17,9 +17,8 @@ const Wrapper = styled.View`
 class Coins extends Component {
   
   @computed get cryptoOptions() {
-    const { state } = this.props
-    const crypto = state.sortedCrypto
-    return crypto.map(c => ({ value: c.symbol, label: c.symbol, match: c.name }))
+    const { state: { crypto }} = this.props
+    return crypto.map(c => ({ value: c.symbol, label: c.symbol, match: c.name, sort: c.marketCapSort }))
   }
   
   @observable selectedCoin = (this.cryptoOptions.find(c => c.value === 'BTC'))

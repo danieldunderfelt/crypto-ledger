@@ -26,11 +26,12 @@ class ListPickerItem extends Component {
   }
   
   render() {
-    const { itemHeight, item, selected, selectedColor, defaultColor } = this.props
+    const { onLongPress, itemHeight, item, selected, selectedColor, defaultColor } = this.props
     const isSelected = get(selected, 'value', false) === get(item, 'value', true)
     
     return (
       <OptionItem
+        onLongPress={ onLongPress }
         onPress={ this.onItemPress }
         height={ itemHeight }>
         <OptionLabel
