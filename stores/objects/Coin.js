@@ -15,9 +15,6 @@ export default (data, state) => {
     name: '',
     logo: '',
     marketCapSort: 0,
-    set marketCapSort(val) {
-      this.marketCapSort = parseInt(val)
-    },
     _loading: false,
     _cache: {
       priceData: {

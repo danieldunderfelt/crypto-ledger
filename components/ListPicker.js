@@ -1,33 +1,39 @@
-import React, { Component }                   from 'react'
+import React, { Component } from 'react'
 import { StyleSheet } from 'react-native'
-import { observer }                           from 'mobx-react/native'
-import styled                                 from 'styled-components/native'
-import debounce                                    from 'lodash/debounce'
-import ListPickerItem                         from './ListPickerItem'
+import { observer } from 'mobx-react/native'
+import styled from 'styled-components/native'
+import debounce from 'lodash/debounce'
+import ListPickerItem from './ListPickerItem'
 import { observable, action, computed } from 'mobx'
 import fuzzyMatch from '../helpers/fuzzyMatch'
+import get from 'lodash/get'
 
-const ITEMHEIGHT = 20
+const DEFAULT_ITEMHEIGHT = 20
 
 const PickerContainer = styled.View`
   position: relative;
-  height: 60px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 5px;
   border-width: ${ StyleSheet.hairlineWidth }
 `
 
-const OptionList = styled.FlatList``
+const OptionList = styled.FlatList`
+  height: ${({ itemHeight = DEFAULT_ITEMHEIGHT }) => itemHeight * 3 }px;
+`
 
 const FilterInput = styled.TextInput`
-  position: absolute;
-  top: -${ ITEMHEIGHT + 5 }px;
-  left: 0;
+  flex: 1;
   font-size: 12px;
+  line-height: 12px;
   padding: 4px 2px;
-  width: 60px;
   background: #dedede;
   color: black;
   border-radius: 4px;
   text-align: center;
+  min-width: 40px;
+  margin-right: 5px;
 `
 
 @observer
@@ -45,8 +51,9 @@ class ListPicker extends Component {
     
     opts = opts.sort((a, b) => a.sort > b.sort ? 1 : -1)
     
-    opts.push({ value: '_empty_end', label: '' })
-    opts.unshift({ value: '_empty_start', label: '' })
+    // Add padding items
+    opts.push({ value: '_empty_end', label: '', enabled: false })
+    opts.unshift({ value: '_empty_start', label: '', enabled: false })
     
     return opts
   }
@@ -57,10 +64,10 @@ class ListPicker extends Component {
   ignoreTimeout = 0
   
   onScroll = e => {
-    if(this.ignoreScroll) {
+    if( this.ignoreScroll ) {
       return
     }
-  
+    
     const { y } = e.nativeEvent.contentOffset
     clearTimeout(this.scrollEndTimeout)
     
@@ -71,15 +78,15 @@ class ListPicker extends Component {
   
   getIndexFromOffset = offset => {
     let scrollOffset = Math.round(offset + 0.5)
-  
+    
     let i = 0
-  
-    while( scrollOffset % ITEMHEIGHT !== 0 && i < ITEMHEIGHT + 1 ) {
+    
+    while( scrollOffset % DEFAULT_ITEMHEIGHT !== 0 && i < DEFAULT_ITEMHEIGHT + 1 ) {
       scrollOffset++
       i++
     }
-   
-    return (scrollOffset / ITEMHEIGHT)
+    
+    return (scrollOffset / DEFAULT_ITEMHEIGHT)
   }
   
   onScrollEnd = (offset) => {
@@ -87,8 +94,8 @@ class ListPicker extends Component {
     
     const optionsIndex = this.getIndexFromOffset(offset)
     const optionAtIndex = options[ optionsIndex ]
-
-    if( typeof optionAtIndex !== 'undefined' ) {
+    
+    if( typeof optionAtIndex !== 'undefined' && get(optionAtIndex, 'enabled', true) ) {
       this.onChange(optionAtIndex, optionsIndex)
     }
   }
@@ -108,9 +115,9 @@ class ListPicker extends Component {
   scrollToOption = (opt, animation = true) => {
     const nextIndex = this.getIndexOfOption(opt)
     
-    if(nextIndex > -1) {
+    if( nextIndex > -1 ) {
       this.disableScroll()
-      this.scrollView.scrollToOffset({ offset: (nextIndex - 1) * ITEMHEIGHT, animated: animation })
+      this.scrollView.scrollToOffset({ offset: (nextIndex - 1) * DEFAULT_ITEMHEIGHT, animated: animation })
       this.scrollView.recordInteraction()
     }
   }
@@ -130,7 +137,7 @@ class ListPicker extends Component {
   toggleFilterInput = (setTo = !this.filterVisible) => {
     this.filterVisible = setTo
     
-    if(!setTo) {
+    if( !setTo ) {
       this.onFilterClose()
     }
   }
@@ -138,8 +145,8 @@ class ListPicker extends Component {
   @action setFilterTerm = str => {
     this.filterTerm = str
     
-    if(this.filterTerm !== '') {
-      if(this.options.length > 2) { // Remember start and end padding
+    if( this.filterTerm !== '' ) {
+      if( this.options.length > 2 ) { // Remember start and end padding
         this.onChange(this.options[ 1 ])
       }
     }
@@ -160,7 +167,7 @@ class ListPicker extends Component {
   componentWillReceiveProps({ value: nextValue }) {
     const { value } = this.props
     
-    if(value !== nextValue) {
+    if( value !== nextValue ) {
       this.scrollToOption(nextValue)
     }
   }
@@ -170,27 +177,17 @@ class ListPicker extends Component {
       onLongPress={ () => this.toggleFilterInput() }
       onPress={ this.onChange }
       selectedColor="#444"
-      itemHeight={ ITEMHEIGHT }
+      itemHeight={ DEFAULT_ITEMHEIGHT }
       item={ item }
       index={ index }
       selected={ this.props.value } />
   )
   
   render() {
+    const { style } = this.props
     
     return (
-      <PickerContainer>
-        <OptionList
-          showsVerticalScrollIndicator={ false }
-          showsHorizontalScrollIndicator={ false }
-          getItemLayout={ (data, idx) => ({ offset: ITEMHEIGHT * idx, length: ITEMHEIGHT, index: idx }) }
-          innerRef={ ref => this.scrollView = ref }
-          onScroll={ this.onScroll }
-          decelerationRate="fast"
-          scrollEnabled={ !this.ignoreScroll }
-          keyExtractor={ this._keyExtractor }
-          renderItem={ this._renderItem }
-          data={ this.options } />
+      <PickerContainer style={ style }>
         { this.filterVisible && (
           <FilterInput
             onSubmitEditing={ () => this.toggleFilterInput(false) }
@@ -198,7 +195,22 @@ class ListPicker extends Component {
             autoFocus={ true }
             onChangeText={ this.setFilterTerm }
             value={ this.filterTerm } />
-        )}
+        ) }
+        <OptionList
+          showsVerticalScrollIndicator={ false }
+          showsHorizontalScrollIndicator={ false }
+          getItemLayout={ (data, idx) => ({
+            offset: DEFAULT_ITEMHEIGHT * idx,
+            length: DEFAULT_ITEMHEIGHT,
+            index: idx
+          }) }
+          innerRef={ ref => this.scrollView = ref }
+          onScroll={ this.onScroll }
+          decelerationRate="fast"
+          scrollEnabled={ !this.ignoreScroll }
+          keyExtractor={ this._keyExtractor }
+          renderItem={ this._renderItem }
+          data={ this.options } />
       </PickerContainer>
     )
   }

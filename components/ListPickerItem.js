@@ -6,7 +6,10 @@ import get from 'lodash/get'
 
 const OptionItem = styled.TouchableOpacity`
   height: ${({ height = 20 }) => height }px;
+  padding: 4px 0;
   background-color: transparent;
+  align-items: flex-start;
+  justify-content: center;
 `
 
 const OptionLabel = styled.Text`
@@ -22,7 +25,11 @@ class ListPickerItem extends Component {
   
   onItemPress = e => {
     const { item, index, onPress } = this.props
-    onPress(item, index)
+    const { enabled = true } = item
+    
+    if(enabled) {
+      onPress(item, index)
+    }
   }
   
   render() {
