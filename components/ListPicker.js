@@ -3,6 +3,7 @@ import { observer }                           from 'mobx-react/native'
 import styled                                 from 'styled-components/native'
 import debounce                                    from 'lodash/debounce'
 import ListPickerItem                         from './ListPickerItem'
+import { observable, action } from 'mobx'
 
 const Wrapper = styled.View`
   position: relative;
@@ -15,24 +16,15 @@ const ITEMHEIGHT = 20
 
 @observer
 class ListPicker extends Component {
+  @observable ignoreScroll = false
+  
   _keyExtractor = item => item.value
   scrollView = null
-  ignoreScroll = true
   scrollEndTimeout = 0
   ignoreTimeout = 0
-  prevOffset = 0
   
   onScroll = e => {
     if(this.ignoreScroll) {
-      // Ignore while scroll animation is happening.
-      // And don't spawn more than one timeout :)
-      if(!this.ignoreTimeout) {
-        this.ignoreTimeout = setTimeout(() => {
-          this.ignoreScroll = false
-          this.ignoreTimeout = 0
-        }, 500)
-      }
-      
       return
     }
   
@@ -40,45 +32,36 @@ class ListPicker extends Component {
     clearTimeout(this.scrollEndTimeout)
     
     this.scrollEndTimeout = setTimeout(offset => {
-      let direction = 'down'
-  
-      if( offset < this.prevOffset ) {
-        direction = 'up'
-      }
-  
-      this.prevOffset = offset
-      
-      this.onScrollEnd(offset, direction)
+      this.onScrollEnd(offset)
     }, 100, y)
   }
   
   getIndexFromOffset = offset => {
-    let scrollOffset = Math.round(offset + 0.5)
+    let scrollOffset = Math.round(offset)
   
     let i = 0
   
-    while( scrollOffset % ITEMHEIGHT !== 0 && i < ITEMHEIGHT ) {
+    while( scrollOffset % ITEMHEIGHT !== 0 && i < ITEMHEIGHT + 1 ) {
       scrollOffset++
       i++
     }
-  
-    const scrollIndex = scrollOffset / ITEMHEIGHT
-    return scrollIndex - 1
+   
+    return (scrollOffset / ITEMHEIGHT) - 1
   }
   
-  onScrollEnd = (offset, direction = 'down') => {
+  onScrollEnd = (offset) => {
     const { options } = this.props
     
     const optionsIndex = this.getIndexFromOffset(offset)
     const optionAtIndex = options[ optionsIndex ]
 
     if( typeof optionAtIndex !== 'undefined' ) {
-      this.ignoreScroll = true
       this.onChange(optionAtIndex, optionsIndex)
     }
   }
   
   onChange = debounce((opt, index) => {
+    this.disableScroll()
     this.props.onChange(opt, index)
   }, 10)
   
@@ -93,9 +76,21 @@ class ListPicker extends Component {
     const nextIndex = this.getIndexOfOption(opt)
     
     if(nextIndex > -1) {
-      this.ignoreScroll = true
+      this.disableScroll()
       this.scrollView.scrollToOffset({ offset: nextIndex * ITEMHEIGHT })
       this.scrollView.recordInteraction()
+    }
+  }
+  
+  disableScroll = () => {
+    this.ignoreScroll = true
+    // Ignore while scroll animation is happening.
+    // And don't spawn more than one timeout :)
+    if( !this.ignoreTimeout ) {
+      this.ignoreTimeout = setTimeout(action(() => {
+        this.ignoreScroll = false
+        this.ignoreTimeout = 0
+      }), 400)
     }
   }
   
@@ -114,6 +109,7 @@ class ListPicker extends Component {
   
   _renderItem = ({ item, index }) => (
     <ListPickerItem
+      onPress={ this.onChange }
       selectedColor="#444"
       itemHeight={ ITEMHEIGHT }
       item={ item }
@@ -137,6 +133,7 @@ class ListPicker extends Component {
           innerRef={ ref => this.scrollView = ref }
           onScroll={ this.onScroll }
           decelerationRate="fast"
+          scrollEnabled={ !this.ignoreScroll }
           keyExtractor={ this._keyExtractor }
           renderItem={ this._renderItem }
           data={ opts } />
