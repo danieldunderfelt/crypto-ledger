@@ -16,12 +16,13 @@
     "mobx-utils": "^3.2.2",
     "native-base": "^2.3.5",
     "node-coinmarketcap": "^0.2.0",
-    "polished": "^1.9.0",
     "react": "16.0.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-24.0.0.tar.gz",
     "react-native-datepicker": "^1.6.0",
     "react-navigation": "^1.0.0-beta.22",
+    "styled-by": "^0.3.0",
     "styled-components": "^2.4.0",
+    "styled-components-theme": "^1.0.5",
     "styled-is": "^1.1.0"
   },
   "devDependencies": {

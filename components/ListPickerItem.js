@@ -1,24 +1,20 @@
-import React, { Component }       from 'react'
-import { observer }               from 'mobx-react/native'
-import styled                     from 'styled-components/native'
-import is                         from 'styled-is'
-import get from 'lodash/get'
+import React, { Component } from 'react'
+import { observer }         from 'mobx-react/native'
+import styled               from 'styled-components/native'
+import is                   from 'styled-is'
+import get                  from 'lodash/get'
+import { NormalText }       from '../style/typography'
+import theme from '../style/theme'
 
 const OptionItem = styled.TouchableOpacity`
   height: ${({ height = 20 }) => height }px;
-  padding: 4px 0;
   background-color: transparent;
   align-items: flex-start;
   justify-content: center;
+  flex-wrap: nowrap;
 `
 
-const OptionLabel = styled.Text`
-  color: ${({ defaultColor = 'lightgrey' }) => defaultColor };
-
-  ${ is('selected')`
-    color: ${({ selectedColor = '#444' }) => selectedColor };
-  `}
-`
+const OptionLabel = styled(NormalText)``
 
 @observer
 class ListPickerItem extends Component {
@@ -27,13 +23,13 @@ class ListPickerItem extends Component {
     const { item, index, onPress } = this.props
     const { enabled = true } = item
     
-    if(enabled) {
+    if( enabled ) {
       onPress(item, index)
     }
   }
   
   render() {
-    const { onLongPress, itemHeight, item, selected, selectedColor, defaultColor } = this.props
+    const { onLongPress, itemHeight, item, selected } = this.props
     const isSelected = get(selected, 'value', false) === get(item, 'value', true)
     
     return (
@@ -42,8 +38,9 @@ class ListPickerItem extends Component {
         onPress={ this.onItemPress }
         height={ itemHeight }>
         <OptionLabel
-          selectedColor={ selectedColor }
-          defaultColor={ defaultColor }
+          weight="bold"
+          size={ 18 }
+          color={ isSelected ? 'white' : theme.lightGreyBlue }
           selected={ isSelected }>
           { item.label }
         </OptionLabel>

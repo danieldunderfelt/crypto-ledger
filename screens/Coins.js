@@ -1,40 +1,42 @@
-import React, { Component } from 'react'
-import { observer, inject } from 'mobx-react/native'
-import styled               from 'styled-components/native'
-import CoinsList            from '../components/coins/CoinList'
-import ListPicker           from '../components/ListPicker'
-import { app }              from 'mobx-app'
-import { computed, observable, action }         from 'mobx'
+import React, { Component }             from 'react'
+import { observer, inject }             from 'mobx-react/native'
+import styled                           from 'styled-components/native'
+import CoinsList                        from '../components/coins/CoinList'
+import ListPicker                       from '../components/ListPicker'
+import { app }                          from 'mobx-app'
+import { computed, observable, action } from 'mobx'
+import { AppBg }                        from '../style/elements'
+import CurrencyInput                    from '../components/CurrencyInput'
 
-const Wrapper = styled.View`
+const Wrapper = styled(AppBg)`
   flex: 1;
   padding-top: 50px;
-  backgroundColor: #fff;
 `
 
 @inject(app('state'))
 @observer
 class Coins extends Component {
   
-  @computed get cryptoOptions() {
-    const { state: { crypto }} = this.props
-    return crypto.map(c => ({ value: c.symbol, label: c.symbol, match: c.name, sort: c.marketCapSort }))
-  }
-  
-  @observable selectedCoin = (this.cryptoOptions.find(c => c.value === 'BTC'))
+  @observable selectedCoin = null
+  @observable inputValue = ''
   
   @action selectCoin = selection => {
     this.selectedCoin = selection
+  }
+  
+  @action onInput = value => {
+    this.inputValue = value
   }
   
   render() {
     
     return (
       <Wrapper>
-        <ListPicker
-          value={ this.selectedCoin }
-          onChange={ this.selectCoin }
-          options={ this.cryptoOptions } />
+        <CurrencyInput
+          value={ this.inputValue }
+          onChangeText={ this.onInput }
+          selectedCurrency={ this.selectedCoin }
+          onSelectCurrency={ this.selectCoin }/>
         <CoinsList />
       </Wrapper>
     )

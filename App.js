@@ -2,13 +2,16 @@ import { AppLoading, Asset, Font } from 'expo'
 import { toJS, observe } from 'mobx'
 import React from 'react'
 import { StyleSheet, View, Platform, StatusBar, Dimensions } from 'react-native'
-import { Provider, observer } from 'mobx-react/native'
-import stores from './stores'
-import { Ionicons } from '@expo/vector-icons'
-import { createStore } from 'mobx-app'
-import { observable, action } from 'mobx'
-import RootNavigation from './navigation/RootNavigation'
-import NetworkActions from './actions/NetworkActions'
+import { Provider, observer }                                from 'mobx-react/native'
+import stores                                                from './stores'
+import { Ionicons }                                          from '@expo/vector-icons'
+import { createStore }                                       from 'mobx-app'
+import { observable, action }                                from 'mobx'
+import RootNavigation                                        from './navigation/RootNavigation'
+import NetworkActions                                        from './actions/NetworkActions'
+import styled, { ThemeProvider }                             from 'styled-components/native'
+import theme, { themeConfig }                                from './style/theme'
+import { AppBg }                                             from './style/elements'
 
 console.ignoredYellowBox = [ 'Warning: Can only update a mounted or mounting component' ];
 
@@ -54,13 +57,15 @@ class App extends React.Component {
       )
     } else {
       return (
-        <Provider state={this.store.state} actions={this.store.actions}>
-          <View style={styles.container}>
-            {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-            {Platform.OS === 'android' && <View style={ styles.statusBarUnderlay } />}
-            <RootNavigation />
-          </View>
-        </Provider>
+        <ThemeProvider theme={ themeConfig }>
+          <Provider state={ this.store.state } actions={ this.store.actions }>
+            <View style={ styles.container }>
+              { Platform.OS === 'ios' && <StatusBar barStyle="light-content" /> }
+              { Platform.OS === 'android' && <View style={ styles.statusBarUnderlay } /> }
+              <RootNavigation />
+            </View>
+          </Provider>
+        </ThemeProvider>
       )
     }
   }
@@ -71,8 +76,11 @@ class App extends React.Component {
       network.loadCryptocurrencies(),
       Font.loadAsync({
         ...Ionicons.font,
-        'Roboto': require('native-base/Fonts/Roboto.ttf'),
-        'Roboto_medium': require('native-base/Fonts/Roboto_medium.ttf')
+        'Montserrat': require('./style/fonts/Montserrat-Regular.ttf'),
+        'Montserrat-Light': require('./style/fonts/Montserrat-Light.ttf'),
+        'Montserrat-Bold': require('./style/fonts/Montserrat-Bold.ttf'),
+        'SourceCodePro': require('./style/fonts/SourceCodePro-Regular.ttf'),
+        'SourceCodePro-Light': require('./style/fonts/SourceCodePro-Light.ttf'),
       })
     ])
   }
@@ -92,8 +100,7 @@ export default App
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff'
+    flex: 1
   },
   statusBarUnderlay: {
     height: 24,
