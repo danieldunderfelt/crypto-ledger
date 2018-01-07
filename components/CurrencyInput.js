@@ -3,9 +3,9 @@ import styled                           from 'styled-components/native'
 import { Input }                        from '../style/elements'
 import ListPicker                       from './ListPicker'
 import { observer, inject }             from 'mobx-react/native'
-import { observable, action, computed } from 'mobx/lib/mobx'
+import { observable, action, computed } from 'mobx'
 import { app }                          from 'mobx-app'
-import get from 'lodash/get'
+import get                              from 'lodash/get'
 
 const Wrapper = styled.View`
   position: relative;
@@ -34,16 +34,22 @@ class CurrencyValue extends Component {
   
   @computed get currencyOptions() {
     const { useFiat = false, state: { crypto, fiat } } = this.props
-    return crypto.map(c => ({ value: c.symbol, label: c.symbol, sort: c.marketCapSort }))
+    return crypto.map(c => ({ value: c.symbol, label: c.symbol, match: c.name, sort: c.marketCapSort }))
   }
   
-  @computed get coinLogoUrl() {
+  @computed get coinLogoSrc() {
     const { state: { crypto }, selectedCurrency } = this.props
     
-    if(!selectedCurrency) return ''
+    if( !selectedCurrency ) return ''
     
     const coin = crypto.find(c => c.symbol === selectedCurrency.value)
-    return get(coin, 'logo', '')
+    const uri = get(coin, 'logo', '')
+    
+    if( !uri ) {
+      return require('../style/icons/generic.png')
+    }
+    
+    return { uri }
   }
   
   render() {
@@ -59,10 +65,11 @@ class CurrencyValue extends Component {
           onChangeText={ val => onChangeText(parseFloat(val)) }
           value={ value.toString() } />
         <PickerWrapper>
-          { (showLogo && !!this.coinLogoUrl) && (
-            <CoinLogo source={ { uri: this.coinLogoUrl } } />
-          )}
+          { (showLogo && !!this.coinLogoSrc) && (
+            <CoinLogo source={ this.coinLogoSrc } />
+          ) }
           <ListPicker
+            itemHeight={ 18 }
             listWidth={ 80 }
             value={ selectedCurrency }
             onChange={ onSelectCurrency }

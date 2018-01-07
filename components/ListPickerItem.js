@@ -39,7 +39,7 @@ class ListPickerItem extends Component {
         height={ itemHeight }>
         <OptionLabel
           weight="bold"
-          size={ 18 }
+          size={ 16 }
           color={ isSelected ? 'white' : theme.lightGreyBlue }
           selected={ isSelected }>
           { item.label }
